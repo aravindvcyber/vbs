@@ -3,8 +3,8 @@ Const STSADM_PATH ="C:\Program Files\Common Files\Microsoft Shared\web server ex
 Const ROOT_URL = "http://root/"
 Const FILE_NAME = "E:\listofsites.xml"
  
-Dim objShell, objExec, objXml, objXml2,objXml3, objSc,objFso, objFile, objWeb
-Dim strResult, strSubResult, strUrl, strCmd, strOwner, strSecOwner, strXML, returnValue, returnValue1, returnValue2 
+Dim objShell, objExec, objXml, objXml2,objXml3, objXml4, objSc,objFso, objFile, objWeb
+Dim strResult, strSubResult, strUrl, strCmd, strOwner, strSecOwner, strXML, returnValue, returnValue1, returnValue2, returnValue3 
  
 'Retrieves all site collections in XML format.
  
@@ -22,6 +22,7 @@ WScript.Echo "Loading XML File"
 Set objXml = CreateObject("MSXML2.DOMDocument")
 Set objXml2 = CreateObject("MSXML2.DOMDocument")
 Set objXml3 = CreateObject("MSXML2.DOMDocument")
+     Set objXml4 = CreateObject("MSXML2.DOMDocument")
 
 objXml.async=false
 returnValue2=objXml.LoadXML(strResult)
@@ -51,11 +52,22 @@ objFile.WriteLine("<WebApplication>")
 For Each objSc in objXml.DocumentElement.ChildNodes
     strUrl = objSc.Attributes.GetNamedItem("Url").Text
     strOwner = objSc.Attributes.GetNamedItem("Owner").Text
+        strSecOwner=""
     strSecOwner = objSc.Attributes.GetNamedItem("SecondaryOwner").Text
     strCmd = STSADM_PATH & " -o enumsubwebs -url """ + strUrl + """"
  
     Set objExec = objShell.Exec(strCmd)
     strResult = objExec.StdOut.ReadAll
+        objXml.async=false
+returnValue3=objXml4.LoadXML(strResult)
+
+ if returnValue3 = true then
+ if objXml4.DocumentElement.Attributes.GetNamedItem("Count").Text <> "0" Then
+
+          WScript.Echo "Number of Sub Sites Found : '" & objXml4.DocumentElement.Attributes.GetNamedItem("Count").Text & "'"
+
+ end if
+    end if
    
     objFile.WriteLine("<SiteCollection SiteCollectionURL='" & strUrl & "' PrimaryOwner = '" & strOwner & "' SecondaryOwner = '" & strSecOwner & "'>" )
     objFile.WriteLine(strResult)
@@ -71,10 +83,10 @@ set objFso = nothing
 set objXml = nothing
 set objXml2 = nothing
 set objXml3 = nothing
+set objXml4 = nothing
 set objExec = nothing
- 
-WScript.Echo "File created"
- 
+ WScript.Echo "File created Successfully"
+notepad FILE_NAME
 sub GetSubSites(strResult)
 objXml.async=false
 returnValue1 = objXml2.LoadXML(strResult)
@@ -89,7 +101,7 @@ for Each objWeb in objXml2.DocumentElement.ChildNodes
     if returnValue = true then
  if objXml3.DocumentElement.Attributes.GetNamedItem("Count").Text <> "0" Then
  objFile.WriteLine(strResult)
- WScript.Echo "Number of SubSites Found : '" & objXml3.DocumentElement.Attributes.GetNamedItem("Count").Text & "'"
+                  WScript.Echo "Number of Inner SubSites Found : '" & objXml3.DocumentElement.Attributes.GetNamedItem("Count").Text & "'"
  WScript.Echo "Traversing the Inner sub Webs…"
  call GetSubSites(strResult)
  end if
