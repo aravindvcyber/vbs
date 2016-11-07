@@ -1,2 +1,5 @@
 Param([string]$input = "")
 "HI" | out-file -Encoding "Default" .\input.txt
+
+Param([string]$inpUrl)
+$inpUrl | out-file -Encoding "Default" .\input.txt
